@@ -9,7 +9,7 @@ http://archive.apache.org/dist/lucene/solr/6.6.2/
 
 ### 2. Apache Nutch ###
 Apache Nutch wird in der Version 1.14 verwendet. Die 1.* - Version gibt es als Binaries, die 2.* nur als Source, die mit ant gebaut werden müssen.
-http://www.apache.org/dyn/closer.lua/nutch/1.14/apache-nutch-1.14-src.zip
+http://www.apache.org/dyn/closer.lua/nutch/1.14/apache-nutch-1.14-bin.zip
 
 
 Vorbereitung
