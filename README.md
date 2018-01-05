@@ -11,6 +11,8 @@ http://archive.apache.org/dist/lucene/solr/6.6.2/
 Apache Nutch wird in der Version 1.14 verwendet. Die 1.* - Version gibt es als Binaries, die 2.* nur als Source, die mit ant gebaut werden müssen.
 http://www.apache.org/dyn/closer.lua/nutch/1.14/apache-nutch-1.14-src.zip
 
+### 3. Search Bar
+Zum Durchsuchen von Solr dient eine kleine Node-Anwendung (searchbar). Diese bindet sich auf Port 3000 und ruft intern den lokalen Solr Server auf,
 
 Vorbereitung
 --------------
