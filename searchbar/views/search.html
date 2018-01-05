@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Consorsbank Search Engine</title>
+
+    <!-- Using jQuery with a CDN -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+
+    <!-- JS file -->
+    <script src="easy-autocomplete/jquery.easy-autocomplete.min.js"></script>
+
+    <!-- CSS file -->
+    <link rel="stylesheet" href="easy-autocomplete/easy-autocomplete.min.css">
+
+    <!-- Additional CSS Themes file - not required-->
+    <link rel="stylesheet" href="easy-autocomplete/easy-autocomplete.themes.min.css">
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var options = {
+                url: function (search_item) {
+//                    return 'http://10.203.20.124:3000/search?key=' + search_item;
+                    return '/search?key=' + search_item;
+                },
+                list: {
+                    match: {
+                        enabled: false
+                    },
+                    maxNumberOfElements: 20,
+
+                    showAnimation: {
+                        type: "fade",
+                        time: 300
+                    },
+                    hideAnimation: {
+                        type: "fade",
+                        time: 200
+                    }
+                },
+                template: {
+                    type: "links",
+                    fields: {
+                        link: "url"
+                    }
+                },
+
+                theme: "round",
+                getValue: "title"
+            };
+
+            $("#basics").easyAutocomplete(options);
+        });
+    </script>
+</head>
+
+<body>
+    <h1>Consorsbank Web Crawler</h1>
+    <input id="basics" autocomplete="off" spellcheck="false" placeholder="Tipp mich..." />
+</body>
+
+</html>

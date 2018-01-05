@@ -30,15 +30,18 @@ do
     esac
 done
 
-echo solr core to be generated/used: $CORE
-echo numbers of crawl cycles: $ROUNDS
-echo inject seeds
+# ************************************************************************************
+
+
+echo "               solr core to be generated/used: $CORE"
+echo "               numbers of crawl cycles: $ROUNDS"
+echo "               inject seeds"
 ./bin/nutch inject crawl/crawldb seeds
 
 # loop -------------------------------------------
-for i in {1..5}
+for i in `seq 1 $ROUNDS`;
 do
-    echo "============================ ROUND $i ==============================="
+    echo "============================ ROUND $i of $ROUNDS ==============================="
 
     echo crawl 
     #./bin/nutch generate crawl/crawldb crawl/segments  -topN 100
