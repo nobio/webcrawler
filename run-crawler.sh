@@ -36,6 +36,8 @@ done
 echo "               solr core to be generated/used: $CORE"
 echo "               numbers of crawl cycles: $ROUNDS"
 echo "               inject seeds"
+
+rm -rf logs/ crawl/ tmp*
 ./bin/nutch inject crawl/crawldb seeds
 
 # loop -------------------------------------------

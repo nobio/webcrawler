@@ -20,8 +20,7 @@
         $(document).ready(function () {
             var options = {
                 url: function (search_item) {
-//                    return 'http://10.203.20.124:3000/search?key=' + search_item;
-                    return '/search?key=' + search_item;
+                    return '/search?key=' + search_item + '&core=' + document.getElementById("cores").value;
                 },
                 list: {
                     match: {
@@ -56,6 +55,12 @@
 
 <body>
     <h1>Consorsbank Web Crawler</h1>
+    <select id='cores'>
+        <option>consorsbank01</option>
+        <option>consorsbank02</option>
+        <option selected>consorsbank03</option>
+    </select>
+    <p/>
     <input id="basics" autocomplete="off" spellcheck="false" placeholder="Tipp mich..." />
 </body>
 

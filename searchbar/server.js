@@ -2,7 +2,8 @@ const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
 const request = require('request');
-const URL = 'http://localhost:8983/solr/consorsbank.de/select?wt=json&rows=100&q='
+const BASE_URL = 'http://localhost:8983/solr';
+const URL = 'http://localhost:8983/solr/consorsbank03/select?wt=json&rows=100&q='
 
 app.set('views', __dirname + '/views');
 app.use(express.static(__dirname + '/JS'));
@@ -14,21 +15,21 @@ app.get('/', function (req, res) {
 });
 
 app.get('/search', function (req, res) {
-  var queryURI = encodeURI(URL + req.query.key);
+  var queryURI = encodeURI(BASE_URL + '/' + req.query.core +'/select?wt=json&rows=100&q=' + req.query.key);
   console.log(queryURI);
 
   request(queryURI, function (error, response, body) {
     if (error) {
-      console.log(error);
-//      res.status(error.statusCode).send(error);
+//      console.log(error);
       res.status(500).send(error);
       return;
     }
 
 
-    var r = JSON.parse(body);
+    var r = JSON.parse(body );
     var responseList = [];
 
+    console.log(r.response);
     console.log(r.response.numFound);
     if (r.response) {
       r.response.docs.forEach(element => {
