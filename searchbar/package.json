@@ -1,10 +1,10 @@
 {
   "name": "Ajax-Search-Box",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "dependencies": {
-    "easy-autocomplete": "^1.3.5",
-    "ejs": "^2.5.5",
-    "express": "4.6.1",
-    "request": "*"
+    "easy-autocomplete": "^*",
+    "ejs": "^3.1.5",
+    "express": "^*",
+    "request": "^2.88.2"
   }
 }

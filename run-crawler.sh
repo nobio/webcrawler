@@ -1,18 +1,23 @@
 #!/bin/bash
-
-rm -f ./crawl/crawldb/.locked 
-rm -f ./crawl/crawldb/..locked.crc 
+unset URL
+unset CORE
+unset SOLR_HOME
+unset NUTCH_HOME
+export SOLR_HOME=/opt/solr
+export NUTCH_HOME=/opt/nutch
 
 # if no args specified, show usage
 if [ $# = 0 ]; then
-    echo "Usage: run-crawler [-c <solr core>] [-r <rounds>]"
-    echo "        -c solr core        name of solr core"
-    echo "        -r rounds           number of crawl cycles"
+    echo "Usage: run-crawler [-c <solr core>] [-r <rounds>] [-u <url to crawl>] [-b <build new>]"
+    echo "  -c solr core        name of solr core"
+    echo "  -r rounds           number of crawl cycles"
+    echo "  -u url              url to crawl (goes to seed.txt)"
+    echo "  -b true/false       flag that indicates if the core should be created from cratch or not (default=false)"
     exit 1
 fi
 
 # get arguments
-
+BUILD_NEW=false
 while [[ $# > 0 ]]
 do
     case $1 in
@@ -22,7 +27,15 @@ do
             ;;
         -r)
             ROUNDS=${2}
-            shift
+            shift 2
+            ;;
+        -u)
+            URL=${2}
+            shift 2
+            ;;
+        -b)
+            BUILD_NEW=${2}
+            shift 2
             ;;
         *)
             break
@@ -33,45 +46,33 @@ done
 # ************************************************************************************
 
 
-echo "               solr core to be generated/used: $CORE"
-echo "               numbers of crawl cycles: $ROUNDS"
-echo "               inject seeds"
+echo " -----------------------------------------------------------"
+echo "   solr core to be generated/used: $CORE"
+echo "   numbers of crawl cycles:        $ROUNDS"
+echo "   url to start crawling:          $URL"
+echo "   build new core:                 $BUILD_NEW"
+echo " -----------------------------------------------------------"
+if [[ "$BUILD_NEW" == "true" ]]
+then
+    curl http://localhost:8983/solr/$CORE/update --data '<delete><query>*:*</query></delete>' -H 'Content-type:text/xml; charset=utf-8'
+    curl http://localhost:8983/solr/$CORE/update --data '<commit/>' -H 'Content-type:text/xml; charset=utf-8'
+    sudo rm -rf $NUTCH_HOME/logs/ $NUTCH_HOME/crawl/ $NUTCH_HOME/tmp $SOLR_HOME/server/solr/configsets/$CORE/
 
-rm -rf logs/ crawl/ tmp*
-./bin/nutch inject crawl/crawldb seeds
+    sudo mkdir -p $SOLR_HOME/server/solr/configsets/$CORE/
+    sudo cp -r $SOLR_HOME/server/solr/configsets/_default/* $SOLR_HOME/server/solr/configsets/$CORE/
 
-# loop -------------------------------------------
-for i in `seq 1 $ROUNDS`;
-do
-    echo "============================ ROUND $i of $ROUNDS ==============================="
+    mkdir -p $NUTCH_HOME/tmp
+    curl https://raw.githubusercontent.com/apache/nutch/master/src/plugin/indexer-solr/schema.xml > $NUTCH_HOME/tmp/schema.xml
+    sudo mv $NUTCH_HOME/tmp/schema.xml $SOLR_HOME/server/solr/configsets/$CORE/conf/
+    mkdir -p $NUTCH_HOME/urls
+    echo $URL > $NUTCH_HOME/urls/seed.txt
 
-    echo crawl 
-    #./bin/nutch generate crawl/crawldb crawl/segments  -topN 100
-    ./bin/nutch generate crawl/crawldb crawl/segments
-    export s1=`ls -d crawl/segments/2* | tail -1`
+    sudo -u solr $SOLR_HOME/bin/solr create -c $CORE -d $SOLR_HOME/server/solr/configsets/$CORE/conf/
+fi
 
-    echo fetch $s1
-    ./bin/nutch fetch $s1 -all
-
-    echo parse $s1
-    ./bin/nutch parse $s1 -all
-
-    echo update db $s1
-    ./bin/nutch updatedb crawl/crawldb $s1
-done
-# loop end----------------------------------------
-
-echo invert links
-./bin/nutch invertlinks crawl/linkdb -dir crawl/segments
-
-echo create new core
-../solr-6.6.2/bin/solr create -c $CORE
-
-echo create index 
-#./bin/nutch index -Dsolr.server.url=http://localhost:8983/solr/consorsbank crawl/crawldb/ -linkdb crawl/linkdb/ crawl/segments/ -dir $s1 -filter -normalize
-#./bin/nutch solrindex http://localhost:8983/solr/consorsbank3 crawl/crawldb/ -linkdb crawl/linkdb/ $s1 -filter -normalize -deleteGone
-./bin/nutch solrindex http://localhost:8983/solr/$CORE crawl/crawldb/ -linkdb crawl/linkdb/ crawl/segments/* -filter -normalize -deleteGone
-
-#das gleiche wie 
-#./bin/nutch solrindex http://localhost:8983/solr/consorsbank crawl/crawldb/ -linkdb crawl/linkdb/ crawl/segments/20171229143124 -filter -normalize
-
+# finally start crawling
+echo " ------------------------------------------------------------------------------------------------------"
+echo start crawling: 
+echo $NUTCH_HOME/bin/crawl -i -s $NUTCH_HOME/urls/ $NUTCH_HOME/crawl/ $ROUNDS
+echo " ------------------------------------------------------------------------------------------------------"
+$NUTCH_HOME/bin/crawl -i -s $NUTCH_HOME/urls/ $NUTCH_HOME/crawl/ $ROUNDS

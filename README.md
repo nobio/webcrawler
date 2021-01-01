@@ -4,15 +4,57 @@ Nutch und Solr
 Versionen
 ----------
 ### 1. Solr ###
-Solr wird in der Version 6.6.2 verwendet
-http://archive.apache.org/dist/lucene/solr/6.6.2/
+Solr wird in der Version 8.5.1 (oder 7.3.1) verwendet
+`wget http://archive.apache.org/dist/lucene/solr/8.5.1/solr-8.5.1.tgz`
 
 ### 2. Apache Nutch ###
-Apache Nutch wird in der Version 1.14 verwendet. Die 1.* - Version gibt es als Binaries, die 2.* nur als Source, die mit ant gebaut werden müssen.
-http://www.apache.org/dyn/closer.lua/nutch/1.14/apache-nutch-1.14-src.zip
+Apache Nutch wird in der Version 1.17 (oder 1.16) verwendet. 
+`wget http://archive.apache.org/dist/nutch/1.17/apache-nutch-1.17-bin.tar.gz`
+
 
 ### 3. Search Bar
 Zum Durchsuchen von Solr dient eine kleine Node-Anwendung (searchbar). Diese bindet sich auf Port 3000 und ruft intern den lokalen Solr Server auf,
+
+Installation
+--------------
+```
+wget http://archive.apache.org/dist/lucene/solr/8.5.1/solr-8.5.1.tgz
+wget http://archive.apache.org/dist/nutch/1.17/apache-nutch-1.17-bin.tar.gz
+
+tar xvf solr-7.3.1.tgz
+tar vfx apache-nutch-1.16-bin.tar.gz
+
+sudo mv apache-nutch-1.16 /opt/
+sudo ln -s /opt/apache-nutch-1.16 /opt/nutch
+sudo ./solr-7.3.1/bin/install_solr_service.sh ./solr-7.3.1.tgz
+sudo systemctl enable solr solr.service
+
+vi /opt/nutch/conf/nutch-site.xml
+(hinzufügen:)
+    ------------
+    <configuration>    
+        <property>
+           <name>http.agent.name<name>
+           <value>Nobios Web Crawler<value>
+        <property>
+    <configuration>
+    ------------
+
+sudo vi /etc/profile
+    ------------
+    export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")
+    export NUTCH_HOME=/opt/nutch
+    export SOLR_HOME=/opt/solr
+    ------------
+
+vi conf/nutch-default.xml 
+    ------------
+    <property>
+      <name>fetcher.server.delay</name>
+      <value>1.0</value>
+    ...
+    ------------
+```
 
 Vorbereitung
 --------------
@@ -54,9 +96,7 @@ und kann durch folgende ersetzt werden, um auf die Domain 'consorsbank.de' einzu
 </li>
 
 <li>
-Starten von solr:
-<code>$SOLR_HOME/bin/solr start -f</code>
-(-f: Foreground)
+Starten von solr: Einrichtung Service: `systemct solr`
 </li>
 
 </ul>
@@ -65,31 +105,39 @@ Start Crawler
 --------------
 Um den Crawler zu starten kann man nach diversen Tutorials vorgehen oder das skript 
     run-crawler.sh
-verwenden. Vorher sollte der Ordner <code>crawl</code> komplett gelöscht werden, da ansonsten die Ergebnisse der vorläufer-Crawls mit übernommen weden.
-    
-    rm -rf $NUTCH_HOME/crawl
 
 Das Skript übernimmt den Core-Namen als Parameter und legt in Solr einen neuen Core an. Nach 5 Runden (ACHTUNG: Eine Runde reicht nicht, man muss mehrere Runden durchlaufen, da ansonsten fast nichts gefunden wird. Warum, weiß ich auch nicht...) 
 
 run-crawler.sh
 --------------
-
-```{r, engine='bash'}
+```
+Usage: run-crawler [-c <solr core>] [-r <rounds>] [-u <url to crawl>] [-b <build new>]
+  -c solr core        name of solr core
+  -r rounds           number of crawl cycles
+  -u url              url to crawl (goes to seed.txt)
+  -b true/false       flag that indicates if the core should be created from cratch or not (default=false)
+```
+```bash
 #!/bin/bash
-
-rm -f ./crawl/crawldb/.locked 
-rm -f ./crawl/crawldb/..locked.crc 
+unset URL
+unset CORE
+unset SOLR_HOME
+unset NUTCH_HOME
+export SOLR_HOME=/opt/solr
+export NUTCH_HOME=/opt/nutch
 
 # if no args specified, show usage
 if [ $# = 0 ]; then
-    echo "Usage: run-crawler [-c <solr core>] [-r <rounds>]"
-    echo "        -c solr core        name of solr core"
-    echo "        -r rounds           number of crawl cycles"
+    echo "Usage: run-crawler [-c <solr core>] [-r <rounds>] [-u <url to crawl>] [-b <build new>]"
+    echo "  -c solr core        name of solr core"
+    echo "  -r rounds           number of crawl cycles"
+    echo "  -u url              url to crawl (goes to seed.txt)"
+    echo "  -b true/false       flag that indicates if the core should be created from cratch or not (default=false)"
     exit 1
 fi
 
 # get arguments
-
+BUILD_NEW=false
 while [[ $# > 0 ]]
 do
     case $1 in
@@ -99,7 +147,15 @@ do
             ;;
         -r)
             ROUNDS=${2}
-            shift
+            shift 2
+            ;;
+        -u)
+            URL=${2}
+            shift 2
+            ;;
+        -b)
+            BUILD_NEW=${2}
+            shift 2
             ;;
         *)
             break
@@ -107,44 +163,38 @@ do
     esac
 done
 
-echo solr core to be generated/used: $CORE
-echo numbers of crawl cycles: $ROUNDS
-echo inject seeds
-./bin/nutch inject crawl/crawldb seeds
+# ************************************************************************************
 
-# loop -------------------------------------------
-for i in {1..5}
-do
-    echo "============================ ROUND $i ==============================="
 
-    echo crawl 
-    #./bin/nutch generate crawl/crawldb crawl/segments  -topN 100
-    ./bin/nutch generate crawl/crawldb crawl/segments
-    export s1=`ls -d crawl/segments/2* | tail -1`
+echo " -----------------------------------------------------------"
+echo "   solr core to be generated/used: $CORE"
+echo "   numbers of crawl cycles:        $ROUNDS"
+echo "   url to start crawling:          $URL"
+echo "   build new core:                 $BUILD_NEW"
+echo " -----------------------------------------------------------"
+if [[ "$BUILD_NEW" == "true" ]]
+then
+    curl http://localhost:8983/solr/$CORE/update --data '<delete><query>*:*</query></delete>' -H 'Content-type:text/xml; charset=utf-8'
+    curl http://localhost:8983/solr/$CORE/update --data '<commit/>' -H 'Content-type:text/xml; charset=utf-8'
+    sudo rm -rf $NUTCH_HOME/logs/ $NUTCH_HOME/crawl/ $NUTCH_HOME/tmp $SOLR_HOME/server/solr/configsets/$CORE/
 
-    echo fetch $s1
-    ./bin/nutch fetch $s1 -all
+    sudo mkdir -p $SOLR_HOME/server/solr/configsets/$CORE/
+    sudo cp -r $SOLR_HOME/server/solr/configsets/_default/* $SOLR_HOME/server/solr/configsets/$CORE/
 
-    echo parse $s1
-    ./bin/nutch parse $s1 -all
+    mkdir -p $NUTCH_HOME/tmp
+    curl https://raw.githubusercontent.com/apache/nutch/master/src/plugin/indexer-solr/schema.xml > $NUTCH_HOME/tmp/schema.xml
+    sudo mv $NUTCH_HOME/tmp/schema.xml $SOLR_HOME/server/solr/configsets/$CORE/conf/
+    mkdir -p $NUTCH_HOME/urls
+    echo $URL > $NUTCH_HOME/urls/seed.txt
 
-    echo update db $s1
-    ./bin/nutch updatedb crawl/crawldb $s1
-done
-# loop end----------------------------------------
+    sudo -u solr $SOLR_HOME/bin/solr create -c $CORE -d $SOLR_HOME/server/solr/configsets/$CORE/conf/
+fi
 
-echo invert links
-./bin/nutch invertlinks crawl/linkdb -dir crawl/segments
-
-echo create new core
-../solr-6.6.2/bin/solr create -c $CORE
-
-echo create index 
-#./bin/nutch index -Dsolr.server.url=http://localhost:8983/solr/consorsbank crawl/crawldb/ -linkdb crawl/linkdb/ crawl/segments/ -dir $s1 -filter -normalize
-#./bin/nutch solrindex http://localhost:8983/solr/consorsbank3 crawl/crawldb/ -linkdb crawl/linkdb/ $s1 -filter -normalize -deleteGone
-./bin/nutch solrindex http://localhost:8983/solr/$CORE crawl/crawldb/ -linkdb crawl/linkdb/ crawl/segments/* -filter -normalize -deleteGone
-
-#das gleiche wie 
-#./bin/nutch solrindex http://localhost:8983/solr/consorsbank crawl/crawldb/ -linkdb crawl/linkdb/ crawl/segments/20171229143124 -filter -normalize
+# finally start crawling
+echo " ------------------------------------------------------------------------------------------------------"
+echo start crawling: 
+echo $NUTCH_HOME/bin/crawl -i -s $NUTCH_HOME/urls/ $NUTCH_HOME/crawl/ $ROUNDS
+echo " ------------------------------------------------------------------------------------------------------"
+$NUTCH_HOME/bin/crawl -i -s $NUTCH_HOME/urls/ $NUTCH_HOME/crawl/ $ROUNDS
 
 ```

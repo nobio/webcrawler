@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Consorsbank Search Engine</title>
+    <title>Search Engine</title>
 
     <!-- Using jQuery with a CDN -->
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
@@ -24,9 +24,9 @@
                 },
                 list: {
                     match: {
-                        enabled: false
+                        enabled: true
                     },
-                    maxNumberOfElements: 20,
+                    maxNumberOfElements: 100,
 
                     showAnimation: {
                         type: "fade",
@@ -54,11 +54,9 @@
 </head>
 
 <body>
-    <h1>Consorsbank Web Crawler</h1>
+    <h1>Web Crawler</h1>
     <select id='cores'>
-        <option>consorsbank01</option>
-        <option>consorsbank02</option>
-        <option selected>consorsbank03</option>
+        <option selected>nutch</option>
     </select>
     <p/>
     <input id="basics" autocomplete="off" spellcheck="false" placeholder="Tipp mich..." />
