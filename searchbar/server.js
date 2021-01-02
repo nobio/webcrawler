@@ -1,9 +1,7 @@
 const express = require('express');
 const app = express();
-const server = require('http').createServer(app);
 const request = require('request');
 const BASE_URL = 'http://ubuntu20:8983/solr';
-const URL = 'http://localhost:8983/solr/consorsbank03/select?wt=json&rows=100&q='
 
 app.set('views', __dirname + '/views');
 app.use(express.static(__dirname + '/JS'));
@@ -14,7 +12,34 @@ app.get('/', function (req, res) {
   res.render('search.html');
 });
 
-app.get('/search', function (req, res) {
+/* ------------------------------------------------------------------------------ */
+/*          Route to read all cores                                               */
+/* ------------------------------------------------------------------------------ */
+app.get('/cores', (req, res) => {
+  const queryURI = encodeURI(BASE_URL + '/admin/cores');
+
+  request(queryURI, function (error, response, body) {
+    if (error) {
+      res.status(500).send(error);
+      return;
+    }
+
+    var r = JSON.parse(body);
+    var responseList = [];
+
+    for (key in r.status) {
+      responseList.push({"name": key});
+    }
+    console.log(responseList);
+    res.status(200).send(responseList);
+  });
+
+});
+
+/* ------------------------------------------------------------------------------ */
+/*          Route to search                                                       */
+/* ------------------------------------------------------------------------------ */
+app.get('/search', (req, res) => {
   const queryURI = encodeURI(BASE_URL + '/' + req.query.core + '/select?wt=json&rows=100&q=content:' + req.query.key + '');
   //console.log(queryURI);
 

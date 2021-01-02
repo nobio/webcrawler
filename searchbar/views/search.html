@@ -51,14 +51,26 @@
             $("#basics").easyAutocomplete(options);
         });
     </script>
+    <script type="text/javascript">
+        $(document).ready(() => {
+            $.get('/cores', (cores, status) => {
+                if (status === 'success') {
+                    let OPTIONS = '';
+                    $.each(cores, function (i, core) {
+                        console.log(core.name)
+                        OPTIONS = OPTIONS + "<option>" + core.name + "</option>";
+                    });
+                    $("#cores").append(OPTIONS)
+                }
+            });
+        });
+    </script>
 </head>
 
 <body>
     <h1>Web Crawler</h1>
-    <select id='cores'>
-        <option selected>nutch</option>
-    </select>
-    <p/>
+    <select id='cores'></select>
+    <p />
     <input id="basics" autocomplete="off" spellcheck="false" placeholder="Tipp mich..." />
 </body>
 
