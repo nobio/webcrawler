@@ -56,6 +56,12 @@ vi conf/nutch-default.xml
       <value>1.0</value>
     ...
     ------------
+    
+ vi conf/index-writers.xml
+    ------------
+    <param name="url" value="http://localhost:8983/solr/<$CORE>"/>
+    ------------
+
 ```
 
 Vorbereitung
