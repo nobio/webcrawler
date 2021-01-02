@@ -1,6 +1,8 @@
 Nutch und Solr
 ==============
 
+(see https://cwiki.apache.org/confluence/display/NUTCH/NutchTutorial#NutchTutorial-Option1:SetupNutchfromabinarydistribution)
+
 Versionen
 ----------
 ### 1. Solr ###
@@ -54,6 +56,12 @@ vi conf/nutch-default.xml
       <value>1.0</value>
     ...
     ------------
+    
+ vi conf/index-writers.xml
+    ------------
+    <param name="url" value="http://localhost:8983/solr/<$CORE>"/>
+    ------------
+
 ```
 
 Vorbereitung
