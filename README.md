@@ -1,6 +1,8 @@
 Nutch und Solr
 ==============
+
 (see https://cwiki.apache.org/confluence/display/NUTCH/NutchTutorial#NutchTutorial-Option1:SetupNutchfromabinarydistribution)
+
 Versionen
 ----------
 ### 1. Solr ###
