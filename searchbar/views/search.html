@@ -6,7 +6,7 @@
     <title>Search Engine</title>
 
     <!-- Using jQuery with a CDN -->
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 
     <!-- JS file -->
     <script src="easy-autocomplete/jquery.easy-autocomplete.min.js"></script>
@@ -24,7 +24,7 @@
                 },
                 list: {
                     match: {
-                        enabled: true
+                        enabled: false
                     },
                     maxNumberOfElements: 100,
 
@@ -71,7 +71,7 @@
     <h1>Web Crawler</h1>
     <select id='cores'></select>
     <p />
-    <input id="basics" autocomplete="off" spellcheck="false" placeholder="Tipp mich..." />
+    <input id="basics" autocomplete="on" spellcheck="false" placeholder="Tipp mich..." />
 </body>
 
 </html>

@@ -1,7 +1,8 @@
 const express = require('express');
 const app = express();
 const request = require('request');
-const BASE_URL = 'http://ubuntu20:8983/solr';
+//const BASE_URL = 'http://ubuntu20:8983/solr';
+const BASE_URL = 'http://localhost:8983/solr';
 
 app.set('views', __dirname + '/views');
 app.use(express.static(__dirname + '/JS'));
@@ -28,7 +29,7 @@ app.get('/cores', (req, res) => {
     var responseList = [];
 
     for (key in r.status) {
-      responseList.push({"name": key});
+      responseList.push({ "name": key });
     }
     console.log(responseList);
     res.status(200).send(responseList);
@@ -40,8 +41,9 @@ app.get('/cores', (req, res) => {
 /*          Route to search                                                       */
 /* ------------------------------------------------------------------------------ */
 app.get('/search', (req, res) => {
-  const queryURI = encodeURI(BASE_URL + '/' + req.query.core + '/select?wt=json&rows=100&q=content:' + req.query.key + '');
-  //console.log(queryURI);
+  //  const queryURI = encodeURI(BASE_URL + '/' + req.query.core + '/select?wt=json&rows=100&q=content:' + req.query.key + '*');
+  const queryURI = encodeURI(BASE_URL + '/' + req.query.core + '/select?wt=json&rows=100&q=content:' + req.query.key + '*');
+  console.log(queryURI);
 
   request(queryURI, function (error, response, body) {
     if (error) {
@@ -67,7 +69,7 @@ app.get('/search', (req, res) => {
         }
       });
     }
-    //console.log(responseList);
+    console.log(responseList);
     res.status(200).send(responseList);
   });
 
